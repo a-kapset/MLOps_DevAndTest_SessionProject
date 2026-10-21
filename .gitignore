@@ -1,0 +1,28 @@
+# Байт-код Python и результаты сборки
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Виртуальное окружение Poetry внутри проекта
+.venv/
+
+# Кэши инструментов
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Локальные настройки и секреты: в git попадает только файл-пример
+.env
+.env.*
+!.env.example
+
+# Редакторы и ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

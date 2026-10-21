@@ -1,0 +1,51 @@
+[project]
+name = "credit-default"
+version = "0.1.0"
+description = "Probability-of-default model for the UCI credit card default dataset: data pipeline, training, API, monitoring"
+authors = [{name = "Artsiom Kapset"}]
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+
+[tool.poetry]
+packages = [{include = "credit_default", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[dependency-groups]
+test = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+]
+lint = [
+    "ruff (>=0.17.1,<0.18.0)",
+    "mypy (>=2.4.0,<3.0.0)",
+    "pre-commit (>=4.7.0,<5.0.0)",
+]
+
+
+[tool.ruff]
+line-length = 120
+
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "ANN"]
+
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+mypy_path = "src"
+strict = true
+warn_unreachable = true
+
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "--strict-markers", "--cov=credit_default", "--cov-report=term-missing"]
