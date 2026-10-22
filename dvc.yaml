@@ -1,0 +1,12 @@
+stages:
+  prepare:
+    cmd: python -m credit_default.data.make_dataset
+    deps:
+      - data/raw/UCI_Credit_Card.csv
+      - src/credit_default/data/make_dataset.py
+      - src/credit_default/config.py
+    params:
+      - prepare
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv

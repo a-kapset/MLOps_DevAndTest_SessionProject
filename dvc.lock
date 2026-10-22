@@ -1,0 +1,31 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m credit_default.data.make_dataset
+    deps:
+    - path: data/raw/UCI_Credit_Card.csv
+      hash: md5
+      md5: 940b416bb13a9b24bb5c9e1589284005
+      size: 2862995
+    - path: src/credit_default/config.py
+      hash: md5
+      md5: 1f9da13a9a2ed099ea1fc98afe363e86
+      size: 777
+    - path: src/credit_default/data/make_dataset.py
+      hash: md5
+      md5: 5e63ba7d248a690daafcba6d146a775e
+      size: 2233
+    params:
+      params.yaml:
+        prepare:
+          test_size: 0.2
+          random_state: 42
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 0e9ecea30502046987abbcdfcd2b5de1
+      size: 701518
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 265faae9d57c520f224511b4a0514ed5
+      size: 2803834
