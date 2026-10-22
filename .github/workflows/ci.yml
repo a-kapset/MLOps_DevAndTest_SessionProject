@@ -28,3 +28,16 @@ jobs:
       - run: poetry run ruff format --check .
       - run: poetry run ruff check .
       - run: poetry run mypy
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx install "poetry==${POETRY_VERSION}"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: poetry
+      - run: poetry install --only main,train,test
+      - run: poetry run pytest
