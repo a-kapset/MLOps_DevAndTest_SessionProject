@@ -41,3 +41,25 @@ jobs:
           cache: poetry
       - run: poetry install --only main,train,test
       - run: poetry run pytest
+
+  data-validation:
+    name: Data validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx install "poetry==${POETRY_VERSION}"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: poetry
+      - run: poetry install --only main,train
+      - name: Configure DagsHub credentials
+        env:
+          DAGSHUB_USER: ${{ secrets.DAGSHUB_USER }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          poetry run dvc remote modify --local origin auth basic
+          poetry run dvc remote modify --local origin user "$DAGSHUB_USER"
+          poetry run dvc remote modify --local origin password "$DAGSHUB_TOKEN"
+      - run: poetry run dvc pull data/raw/UCI_Credit_Card.csv
+      - run: poetry run python -m credit_default.data.validation
