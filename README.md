@@ -8,6 +8,7 @@
 
 - Исходные данные версионируются DVC, хранилище размещено на DagsHub.
 - DVC-стадия `prepare` очищает данные и делит их на обучающую и тестовую выборки.
+- DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
 - Unit-тесты очистки и разбиения (pytest).
 - CI в GitHub Actions: форматирование, линтинг и проверка типов, отдельно unit-тесты.
 
@@ -17,6 +18,7 @@
 |---|---|
 | Python 3.12, Poetry | окружение и зависимости; `poetry.lock` фиксирует точные версии всех пакетов, включая транзитивные |
 | pandas, scikit-learn | обработка данных и модель |
+| matplotlib | графики разведочного анализа |
 | DVC, DagsHub | версии данных, воспроизводимый пайплайн, удалённое хранилище |
 | pytest, pytest-cov | unit-тесты и покрытие |
 | ruff | линтинг (правила flake8: pycodestyle и pyflakes, а также isort, pyupgrade, bugbear) и форматирование, совместимое с black |
@@ -31,9 +33,13 @@
 ├── data/
 │   ├── raw/                        # исходный CSV (в git только указатель .dvc)
 │   └── processed/                  # train.csv и test.csv, выходы стадии prepare
+├── reports/
+│   ├── eda.md                      # разведочный анализ: выводы и решения для модели
+│   └── figures/                    # графики стадии eda
 ├── src/credit_default/
 │   ├── config.py                   # пути проекта и чтение params.yaml
-│   └── data/make_dataset.py        # стадия prepare: загрузка, очистка, разбиение
+│   ├── data/make_dataset.py        # стадия prepare: загрузка, очистка, разбиение
+│   └── analysis/eda.py             # стадия eda: графики по обучающей выборке
 ├── tests/                          # unit-тесты
 ├── dvc.yaml, dvc.lock              # описание пайплайна и зафиксированные хэши
 ├── params.yaml                     # параметры стадий
@@ -52,7 +58,7 @@ cd MLOps_DevAndTest_SessionProject
 poetry install
 ```
 
-`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
+`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
 
 ## Данные
 
@@ -95,6 +101,8 @@ poetry run dvc status    # показать, что изменилось с по
 - делит данные со стратификацией по целевой переменной: 23 972 строки в train и 5 993 в test, доля дефолтов 0,2213 в обеих.
 
 Параметры разбиения (`test_size`, `random_state`) заданы в `params.yaml`. DVC перезапускает стадию при изменении этих параметров, кода стадии или исходных данных.
+
+Стадия `eda` (`src/credit_default/analysis/eda.py`) читает только `train.csv`, тестовая выборка в анализ не входит. Она сохраняет три графика в `reports/figures/`: баланс классов, распределения числовых признаков по классам и долю дефолтов по статусу последнего платежа `PAY_1`. Графики хранятся в git, а не в кэше DVC (`cache: false`), поэтому GitHub показывает их прямо в [reports/eda.md](reports/eda.md). После изменения данных или кода `dvc repro` строит графики заново.
 
 ## Тесты и проверки кода
 
