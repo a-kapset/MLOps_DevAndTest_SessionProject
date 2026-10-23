@@ -10,3 +10,13 @@ stages:
     outs:
       - data/processed/train.csv
       - data/processed/test.csv
+
+  eda:
+    cmd: python -m credit_default.analysis.eda
+    deps:
+      - data/processed/train.csv
+      - src/credit_default/analysis/eda.py
+      - src/credit_default/config.py
+    outs:
+      - reports/figures:
+          cache: false

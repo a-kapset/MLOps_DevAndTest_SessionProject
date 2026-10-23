@@ -13,6 +13,9 @@ PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 TRAIN_PATH = PROCESSED_DIR / "train.csv"
 TEST_PATH = PROCESSED_DIR / "test.csv"
 
+REPORTS_DIR = PROJECT_ROOT / "reports"
+FIGURES_DIR = REPORTS_DIR / "figures"
+
 TARGET = "default"
 
 

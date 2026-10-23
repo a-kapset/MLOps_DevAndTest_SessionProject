@@ -9,8 +9,8 @@ stages:
       size: 2862995
     - path: src/credit_default/config.py
       hash: md5
-      md5: 1f9da13a9a2ed099ea1fc98afe363e86
-      size: 777
+      md5: 7fa76e0159f8a4254e31845d6e49d8a2
+      size: 855
     - path: src/credit_default/data/make_dataset.py
       hash: md5
       md5: 5e63ba7d248a690daafcba6d146a775e
@@ -29,3 +29,24 @@ stages:
       hash: md5
       md5: 265faae9d57c520f224511b4a0514ed5
       size: 2803834
+  eda:
+    cmd: python -m credit_default.analysis.eda
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 265faae9d57c520f224511b4a0514ed5
+      size: 2803834
+    - path: src/credit_default/analysis/eda.py
+      hash: md5
+      md5: bb7327f357638590d1cb6b38c3a01873
+      size: 4240
+    - path: src/credit_default/config.py
+      hash: md5
+      md5: 7fa76e0159f8a4254e31845d6e49d8a2
+      size: 855
+    outs:
+    - path: reports/figures
+      hash: md5
+      md5: ecf1bf922775d1c9d36edba625423f67.dir
+      size: 88410
+      nfiles: 3
