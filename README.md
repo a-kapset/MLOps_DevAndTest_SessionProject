@@ -7,10 +7,11 @@
 ## Что готово
 
 - Исходные данные версионируются DVC, хранилище размещено на DagsHub.
+- DVC-стадия `validate` проверяет исходные данные набором правил Great Expectations и останавливает пайплайн при аномалиях.
 - DVC-стадия `prepare` очищает данные и делит их на обучающую и тестовую выборки.
 - DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
-- Unit-тесты очистки и разбиения (pytest).
-- CI в GitHub Actions: форматирование, линтинг и проверка типов, отдельно unit-тесты.
+- Unit-тесты очистки, разбиения и правил валидации (pytest).
+- CI в GitHub Actions: форматирование, линтинг и проверка типов, unit-тесты, валидация реальных данных.
 
 ## Стек
 
@@ -19,6 +20,7 @@
 | Python 3.12, Poetry | окружение и зависимости; `poetry.lock` фиксирует точные версии всех пакетов, включая транзитивные |
 | pandas, scikit-learn | обработка данных и модель |
 | matplotlib | графики разведочного анализа |
+| Great Expectations | правила валидации исходных данных |
 | DVC, DagsHub | версии данных, воспроизводимый пайплайн, удалённое хранилище |
 | pytest, pytest-cov | unit-тесты и покрытие |
 | ruff | линтинг (правила flake8: pycodestyle и pyflakes, а также isort, pyupgrade, bugbear) и форматирование, совместимое с black |
@@ -34,10 +36,12 @@
 │   ├── raw/                        # исходный CSV (в git только указатель .dvc)
 │   └── processed/                  # train.csv и test.csv, выходы стадии prepare
 ├── reports/
+│   ├── validation.json             # результат каждой проверки стадии validate
 │   ├── eda.md                      # разведочный анализ: выводы и решения для модели
 │   └── figures/                    # графики стадии eda
 ├── src/credit_default/
 │   ├── config.py                   # пути проекта и чтение params.yaml
+│   ├── data/validation.py          # стадия validate: правила Great Expectations
 │   ├── data/make_dataset.py        # стадия prepare: загрузка, очистка, разбиение
 │   └── analysis/eda.py             # стадия eda: графики по обучающей выборке
 ├── tests/                          # unit-тесты
@@ -58,7 +62,7 @@ cd MLOps_DevAndTest_SessionProject
 poetry install
 ```
 
-`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
+`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib, Great Expectations), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
 
 ## Данные
 
@@ -90,7 +94,19 @@ poetry run dvc repro
 ```bash
 poetry run dvc repro     # пересчитать устаревшие стадии
 poetry run dvc status    # показать, что изменилось с последнего запуска
+poetry run dvc dag       # граф стадий: validate → prepare → eda
 ```
+
+Стадия `validate` (`src/credit_default/data/validation.py`) проверяет исходный CSV набором из 70 правил Great Expectations:
+
+- полнота: все 25 колонок на месте, лишних нет, пропусков нет;
+- типы: во всех колонках только числа;
+- уникальность: `ID` не повторяется;
+- диапазоны: `AGE` от 18 до 100, `LIMIT_BAL` больше нуля, суммы платежей `PAY_AMT1…6` не отрицательные;
+- категории: `SEX` 1–2, `EDUCATION` 0–6, `MARRIAGE` 0–3, статусы `PAY_*` от −2 до 8, целевая переменная 0 или 1. Коды `EDUCATION` 0, 5, 6 и `MARRIAGE` 0 в описании набора отсутствуют, но приходят из источника, поэтому правила их допускают, а `prepare` перекодирует.
+
+Результат каждой проверки записывается в `reports/validation.json`. Если хотя бы одна проверка не прошла, команда завершается с кодом 1 и печатает названия упавших правил. `prepare` зависит от этого отчёта, поэтому DVC запускает стадии по порядку и при провале валидации не доходит до очистки. Проверку можно запустить и без DVC: `poetry run python -m credit_default.data.validation`.
+
 
 Стадия `prepare` (`src/credit_default/data/make_dataset.py`):
 
@@ -114,7 +130,7 @@ poetry run mypy                   # проверка типов (strict)
 poetry run pre-commit install     # те же проверки перед каждым коммитом
 ```
 
-CI запускает два задания на каждый push в `main` и на pull request: `Lint and type check` (ruff и mypy) и `Unit tests` (pytest).
+CI запускает три задания на каждый push в `main` и на pull request: `Lint and type check` (ruff и mypy), `Unit tests` (pytest) и `Data validation`. Последнее скачивает исходный CSV из DagsHub через `dvc pull` и проверяет его правилами Great Expectations. DagsHub не отдаёт данные без входа, поэтому логин и токен хранятся в секретах репозитория `DAGSHUB_USER` и `DAGSHUB_TOKEN`. В форке секретов нет, и это задание там не пройдёт.
 
 ## Запуск на Windows
 
