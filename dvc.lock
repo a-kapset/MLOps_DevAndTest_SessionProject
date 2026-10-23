@@ -7,10 +7,14 @@ stages:
       hash: md5
       md5: 940b416bb13a9b24bb5c9e1589284005
       size: 2862995
+    - path: reports/validation.json
+      hash: md5
+      md5: d34409a737c4fc9a160bedc385e0c33c
+      size: 13120
     - path: src/credit_default/config.py
       hash: md5
-      md5: 7fa76e0159f8a4254e31845d6e49d8a2
-      size: 855
+      md5: 9c8aae9eb7fa51d08d6a2ed376230993
+      size: 912
     - path: src/credit_default/data/make_dataset.py
       hash: md5
       md5: 5e63ba7d248a690daafcba6d146a775e
@@ -42,11 +46,31 @@ stages:
       size: 4240
     - path: src/credit_default/config.py
       hash: md5
-      md5: 7fa76e0159f8a4254e31845d6e49d8a2
-      size: 855
+      md5: 9c8aae9eb7fa51d08d6a2ed376230993
+      size: 912
     outs:
     - path: reports/figures
       hash: md5
       md5: ecf1bf922775d1c9d36edba625423f67.dir
       size: 88410
       nfiles: 3
+  validate:
+    cmd: python -m credit_default.data.validation
+    deps:
+    - path: data/raw/UCI_Credit_Card.csv
+      hash: md5
+      md5: 940b416bb13a9b24bb5c9e1589284005
+      size: 2862995
+    - path: src/credit_default/config.py
+      hash: md5
+      md5: 9c8aae9eb7fa51d08d6a2ed376230993
+      size: 912
+    - path: src/credit_default/data/validation.py
+      hash: md5
+      md5: 118c6df30719b8038e1705b7c7750b09
+      size: 4972
+    outs:
+    - path: reports/validation.json
+      hash: md5
+      md5: d34409a737c4fc9a160bedc385e0c33c
+      size: 13120

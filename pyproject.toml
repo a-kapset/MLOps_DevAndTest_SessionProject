@@ -32,7 +32,8 @@ lint = [
 train = [
     "dvc (>=3.67.1,<4.0.0)",
     "pyyaml (>=6.0.3,<7.0.0)",
-    "matplotlib (>=3.11.2,<4.0.0)"
+    "matplotlib (>=3.11.2,<4.0.0)",
+    "great-expectations (>=1.24.1,<2.0.0)"
 ]
 
 
@@ -65,3 +66,8 @@ addopts = ["--import-mode=importlib", "--strict-markers", "--cov=credit_default"
 [[tool.mypy.overrides]]
 module = ["sklearn.*"]
 ignore_missing_imports = true
+
+
+[[tool.mypy.overrides]]
+module = ["great_expectations.expectations"]
+implicit_reexport = true

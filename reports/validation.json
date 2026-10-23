@@ -1,0 +1,497 @@
+{
+  "success": true,
+  "checks": 70,
+  "failed": 0,
+  "results": [
+    {
+      "expectation": "expect_table_columns_to_match_set",
+      "column": "",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "AGE",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "AGE",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "AGE",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT1",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT1",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT2",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT2",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT3",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT3",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT4",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT4",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT5",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT5",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "BILL_AMT6",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "BILL_AMT6",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "EDUCATION",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "EDUCATION",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "EDUCATION",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "ID",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_be_unique",
+      "column": "ID",
+      "dimension": "uniqueness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "ID",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "LIMIT_BAL",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "LIMIT_BAL",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "LIMIT_BAL",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "MARRIAGE",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "MARRIAGE",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "MARRIAGE",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_0",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_0",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_0",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_2",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_2",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_2",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_3",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_3",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_3",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_4",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_4",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_4",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_5",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_5",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_5",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "PAY_6",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_6",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_6",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT1",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT1",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT1",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT2",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT2",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT2",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT3",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT3",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT3",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT4",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT4",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT4",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT5",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT5",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT5",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_between",
+      "column": "PAY_AMT6",
+      "dimension": "consistency",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "PAY_AMT6",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "PAY_AMT6",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "SEX",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "SEX",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "SEX",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_set",
+      "column": "default.payment.next.month",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": 0
+    },
+    {
+      "expectation": "expect_column_values_to_be_in_type_list",
+      "column": "default.payment.next.month",
+      "dimension": "validity",
+      "success": true,
+      "unexpected_count": null
+    },
+    {
+      "expectation": "expect_column_values_to_not_be_null",
+      "column": "default.payment.next.month",
+      "dimension": "completeness",
+      "success": true,
+      "unexpected_count": 0
+    }
+  ]
+}

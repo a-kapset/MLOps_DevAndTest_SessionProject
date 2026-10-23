@@ -15,6 +15,7 @@ TEST_PATH = PROCESSED_DIR / "test.csv"
 
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
+VALIDATION_REPORT_PATH = REPORTS_DIR / "validation.json"
 
 TARGET = "default"
 
