@@ -12,6 +12,7 @@
 - DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
 - DVC-стадия `train` подбирает гиперпараметры логистической регрессии и случайного леса через GridSearchCV и сохраняет лучшую модель. Все эксперименты записываются в MLflow.
 - REST API на FastAPI: `POST /predict` возвращает класс и вероятность дефолта по признакам клиента.
+- Docker-образ с API и моделью, скрипты сборки и запуска для PowerShell и bash.
 - Unit-тесты очистки, разбиения, правил валидации, признаков, Pipeline, метрик и API (pytest).
 - CI в GitHub Actions: форматирование, линтинг и проверка типов, unit-тесты, валидация реальных данных.
 
@@ -24,6 +25,7 @@
 | joblib | сохранение обученного Pipeline в файл |
 | matplotlib | графики разведочного анализа и ROC-кривая |
 | FastAPI, pydantic, uvicorn | REST API модели, проверка входных данных по схеме, ASGI-сервер |
+| Docker | образ сервиса: Python 3.12, зависимости основной группы из `poetry.lock`, модель |
 | MLflow | трекинг экспериментов: параметры, метрики, ROC-кривая и модель; сервер MLflow на DagsHub |
 | Great Expectations | правила валидации исходных данных |
 | DVC, DagsHub | версии данных, воспроизводимый пайплайн, удалённое хранилище |
@@ -59,6 +61,8 @@
 │   ├── api/schemas.py              # схемы запроса и ответа API
 │   └── api/app.py                  # приложение FastAPI: /health, /predict
 ├── examples/client.json            # пример запроса к /predict
+├── scripts/                        # сборка и запуск Docker-образа (.ps1 и .sh)
+├── Dockerfile, .dockerignore       # образ сервиса
 ├── tests/                          # unit-тесты
 ├── dvc.yaml, dvc.lock              # описание пайплайна и зафиксированные хэши
 ├── params.yaml                     # параметры стадий, включая сетки гиперпараметров
@@ -208,6 +212,41 @@ curl.exe -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/jso
 - `AGE` от 18 до 100, статусы `PAY_1…6` от −2 до 8, суммы платежей `PAY_AMT1…6` не отрицательные;
 - `SEX` 1–2, `EDUCATION` 1–4, `MARRIAGE` 1–3. Коды `EDUCATION` 0, 5, 6 и `MARRIAGE` 0 из исходных данных стадия `prepare` перекодирует в «прочее» (4 и 3), поэтому API ждёт уже перекодированные значения;
 - лишние поля, например `ID`, не принимаются.
+
+## Docker
+
+Образ содержит API, зависимости основной группы и модель, поэтому перед сборкой нужен файл `models/model.joblib` (`dvc pull` или `dvc repro`, см. «Данные»). Без него скрипт сборки останавливается и подсказывает, как получить модель.
+
+PowerShell:
+
+```powershell
+.\scripts\docker_build.ps1
+.\scripts\docker_run.ps1
+curl.exe -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" --data-binary "@examples/client.json"
+docker stop credit-default-api
+```
+
+bash:
+
+```bash
+./scripts/docker_build.sh
+./scripts/docker_run.sh
+curl -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -d @examples/client.json
+docker stop credit-default-api
+```
+
+`docker_run` запускает контейнер `credit-default-api` в фоне, ждёт до 30 секунд ответа `/health` и печатает адрес API. Если сервис не поднялся, скрипт выводит логи контейнера и удаляет его. Другой порт задаётся параметром: `.\scripts\docker_run.ps1 -Port 8080` или `./scripts/docker_run.sh credit-default-api 8080`. Если PowerShell не разрешает запуск скриптов, достаточно один раз выполнить `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+Как устроен образ (`Dockerfile`):
+
+- база `python:3.12-slim`, та же версия Python, что в проекте и CI;
+- Poetry 2.4.1 ставится в отдельное окружение и устанавливает только основную группу из `poetry.lock`, поэтому версии пакетов совпадают с проверенными в CI, а DVC, MLflow, matplotlib и инструменты разработки в образ не попадают;
+- сначала копируются `pyproject.toml` и `poetry.lock`, потом код: при изменении кода Docker берёт слой с зависимостями из кэша;
+- кэш Poetry удаляется в том же слое, где ставятся пакеты;
+- сервис работает от пользователя без прав root;
+- `.dockerignore` пропускает в контекст сборки только нужные файлы, поэтому `.env` с токенами и данные в образ не попадают.
+
+Модель копируется в образ при сборке, поэтому после переобучения образ нужно собрать заново.
 
 ## Тесты и проверки кода
 
