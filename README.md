@@ -10,7 +10,8 @@
 - DVC-стадия `validate` проверяет исходные данные набором правил Great Expectations и останавливает пайплайн при аномалиях.
 - DVC-стадия `prepare` очищает данные и делит их на обучающую и тестовую выборки.
 - DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
-- Unit-тесты очистки, разбиения и правил валидации (pytest).
+- DVC-стадия `train` подбирает гиперпараметры логистической регрессии и случайного леса через GridSearchCV и сохраняет лучшую модель. Все эксперименты записываются в MLflow.
+- Unit-тесты очистки, разбиения, правил валидации, признаков, Pipeline и метрик (pytest).
 - CI в GitHub Actions: форматирование, линтинг и проверка типов, unit-тесты, валидация реальных данных.
 
 ## Стек
@@ -18,8 +19,10 @@
 | Инструмент | Зачем |
 |---|---|
 | Python 3.12, Poetry | окружение и зависимости; `poetry.lock` фиксирует точные версии всех пакетов, включая транзитивные |
-| pandas, scikit-learn | обработка данных и модель |
-| matplotlib | графики разведочного анализа |
+| pandas, scikit-learn | обработка данных, Pipeline модели, подбор гиперпараметров |
+| joblib | сохранение обученного Pipeline в файл |
+| matplotlib | графики разведочного анализа и ROC-кривая |
+| MLflow | трекинг экспериментов: параметры, метрики, ROC-кривая и модель; сервер MLflow на DagsHub |
 | Great Expectations | правила валидации исходных данных |
 | DVC, DagsHub | версии данных, воспроизводимый пайплайн, удалённое хранилище |
 | pytest, pytest-cov | unit-тесты и покрытие |
@@ -35,18 +38,26 @@
 ├── data/
 │   ├── raw/                        # исходный CSV (в git только указатель .dvc)
 │   └── processed/                  # train.csv и test.csv, выходы стадии prepare
+├── models/                         # model.joblib, выход стадии train (в git только через dvc.lock)
 ├── reports/
 │   ├── validation.json             # результат каждой проверки стадии validate
 │   ├── eda.md                      # разведочный анализ: выводы и решения для модели
-│   └── figures/                    # графики стадии eda
+│   ├── figures/                    # графики стадии eda
+│   ├── metrics.json                # параметры и метрики лучшей модели
+│   └── roc_curve.png               # ROC-кривая лучшей модели на тестовой выборке
 ├── src/credit_default/
 │   ├── config.py                   # пути проекта и чтение params.yaml
 │   ├── data/validation.py          # стадия validate: правила Great Expectations
 │   ├── data/make_dataset.py        # стадия prepare: загрузка, очистка, разбиение
-│   └── analysis/eda.py             # стадия eda: графики по обучающей выборке
+│   ├── analysis/eda.py             # стадия eda: графики по обучающей выборке
+│   ├── features/build_features.py  # доменные признаки
+│   ├── models/pipeline.py          # sklearn Pipeline: признаки, предобработка, классификатор
+│   ├── models/evaluate.py          # метрики и ROC-кривая
+│   └── models/train.py             # стадия train: GridSearchCV и MLflow
 ├── tests/                          # unit-тесты
 ├── dvc.yaml, dvc.lock              # описание пайплайна и зафиксированные хэши
-├── params.yaml                     # параметры стадий
+├── params.yaml                     # параметры стадий, включая сетки гиперпараметров
+├── .env.example                    # переменные для сервера MLflow на DagsHub
 └── pyproject.toml, poetry.lock     # зависимости и настройки инструментов
 ```
 
@@ -62,7 +73,7 @@ cd MLOps_DevAndTest_SessionProject
 poetry install
 ```
 
-`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib, Great Expectations), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
+`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib, Great Expectations, MLflow), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
 
 ## Данные
 
@@ -94,7 +105,7 @@ poetry run dvc repro
 ```bash
 poetry run dvc repro     # пересчитать устаревшие стадии
 poetry run dvc status    # показать, что изменилось с последнего запуска
-poetry run dvc dag       # граф стадий: validate → prepare → eda
+poetry run dvc dag       # граф стадий: validate → prepare → eda и prepare → train
 ```
 
 Стадия `validate` (`src/credit_default/data/validation.py`) проверяет исходный CSV набором из 70 правил Great Expectations:
@@ -119,6 +130,50 @@ poetry run dvc dag       # граф стадий: validate → prepare → eda
 Параметры разбиения (`test_size`, `random_state`) заданы в `params.yaml`. DVC перезапускает стадию при изменении этих параметров, кода стадии или исходных данных.
 
 Стадия `eda` (`src/credit_default/analysis/eda.py`) читает только `train.csv`, тестовая выборка в анализ не входит. Она сохраняет три графика в `reports/figures/`: баланс классов, распределения числовых признаков по классам и долю дефолтов по статусу последнего платежа `PAY_1`. Графики хранятся в git, а не в кэше DVC (`cache: false`), поэтому GitHub показывает их прямо в [reports/eda.md](reports/eda.md). После изменения данных или кода `dvc repro` строит графики заново.
+
+Стадия `train` (`src/credit_default/models/train.py`) обучает модель на `train.csv`. Модель собрана как sklearn Pipeline (`src/credit_default/models/pipeline.py`):
+
+1. Два доменных признака: `LIMIT_UTILIZATION` (доля использованного лимита в последнем месяце, `BILL_AMT1 / LIMIT_BAL`) и `MAX_DELAY` (максимальная просрочка за полгода по `PAY_1…6`). Обоснование признаков приведено в [reports/eda.md](reports/eda.md).
+2. Предобработка: числовые колонки заполняются медианой и масштабируются, категориальные `SEX`, `EDUCATION`, `MARRIAGE` заполняются модой и кодируются one-hot. Неизвестная категория на инференсе кодируется нулями.
+3. Классификатор.
+
+Признаки и предобработка входят в Pipeline, поэтому при кросс-валидации медианы, моды и параметры масштабирования считаются только по обучающим фолдам, а на инференсе применяются те же преобразования.
+
+GridSearchCV перебирает сетки из `params.yaml` на стратифицированной кросс-валидации из 5 фолдов по ROC-AUC. Метрика выбрана потому, что модель оценивает вероятность дефолта, а ROC-AUC оценивает ранжирование по вероятности и не зависит от порога. Precision, Recall и F1 считаются для класса «дефолт» при пороге 0,5. Лучшая модель выбирается по ROC-AUC на кросс-валидации, тестовая выборка в выборе не участвует.
+
+Выходы стадии:
+
+- `models/model.joblib`: лучший Pipeline, хранится в кэше DVC и на DagsHub, в git попадает только его хэш в `dvc.lock`;
+- `reports/metrics.json`: модель, параметры, ROC-AUC на кросс-валидации и метрики на test;
+- `reports/roc_curve.png`: ROC-кривая на test.
+
+Метрики и график хранятся в git (`cache: false`), поэтому результат виден без запуска.
+
+## Эксперименты MLflow
+
+Каждый запуск `train` записывает в MLflow эксперимент `credit-default`:
+
+- родительский run на каждую модель: лучшие параметры, ROC-AUC на кросс-валидации, метрики на test с префиксом `test_`, ROC-кривая и сама модель (`mlflow.sklearn.log_model` с примером входа и выведенной сигнатурой);
+- вложенный run на каждого кандидата сетки: параметры, среднее и стандартное отклонение ROC-AUC по фолдам.
+
+Итог последнего запуска (2 родительских и 7 вложенных runs):
+
+| Модель | Лучшие параметры | ROC-AUC, CV | ROC-AUC, test | Precision | Recall | F1 |
+|---|---|---|---|---|---|---|
+| Логистическая регрессия | `C=1.0` | 0,749 | 0,741 | 0,684 | 0,262 | 0,379 |
+| Случайный лес, 200 деревьев | `max_depth=16`, `min_samples_leaf=20` | 0,787 | 0,777 | 0,671 | 0,354 | 0,464 |
+
+Стадия сохраняет случайный лес: ROC-AUC на кросс-валидации у него выше на 0,04. На test он тоже лучше по ROC-AUC и находит больше дефолтов при пороге 0,5 (Recall 0,354 против 0,262). Внутри сеток разброс небольшой: у регрессии ROC-AUC 0,747–0,749 при `C` от 0,01 до 1, у леса 0,783–0,787. Разница между кандидатами одной модели меньше стандартного отклонения по фолдам (0,008–0,010), поэтому на этих сетках выбор модели дал больше, чем настройка её параметров.
+
+Runs доступны без входа на сервере MLflow в DagsHub: [эксперимент credit-default](https://dagshub.com/artem_vk/MLOps_DevAndTest_SessionProject.mlflow/#/experiments/0). Вложенные runs раскрываются под родительским, модели собраны на вкладке Models.
+
+Куда пишет MLflow, определяет переменная `MLFLOW_TRACKING_URI`. Без неё runs сохраняются локально в `mlflow.db` и `mlruns/` (оба в `.gitignore`) и открываются командой:
+
+```bash
+poetry run mlflow ui     # http://127.0.0.1:5000, переключатель Model training, эксперимент credit-default
+```
+
+Чтобы писать на свой сервер MLflow, нужно скопировать `.env.example` в `.env` и заполнить адрес, логин и токен. `train` читает `.env` при запуске, сам файл в git не попадает.
 
 ## Тесты и проверки кода
 
