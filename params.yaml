@@ -1,3 +1,13 @@
 prepare:
   test_size: 0.2
   random_state: 42
+
+train:
+  cv_folds: 5
+  random_state: 42
+  grids:
+    logreg:
+      C: [0.01, 0.1, 1.0]
+    random_forest:
+      max_depth: [8, 16]
+      min_samples_leaf: [5, 20]

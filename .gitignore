@@ -21,6 +21,11 @@ htmlcov/
 .env.*
 !.env.example
 
+# Локальное хранилище MLflow
+mlflow.db
+mlruns/
+mlartifacts/
+
 # Редакторы и ОС
 .vscode/
 .idea/

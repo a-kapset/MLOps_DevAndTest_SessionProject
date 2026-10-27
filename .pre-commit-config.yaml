@@ -8,7 +8,7 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
         args: [--fix=lf]
-        exclude: ^(poetry\.lock|dvc\.lock|\.dvcignore|\.dvc/.*|data/.*)$
+        exclude: ^(poetry\.lock|dvc\.lock|\.dvcignore|\.dvc/.*|data/.*|models/\.gitignore)$
       - id: check-merge-conflict
       - id: check-added-large-files
 

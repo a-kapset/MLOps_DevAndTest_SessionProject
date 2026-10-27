@@ -16,6 +16,10 @@ TEST_PATH = PROCESSED_DIR / "test.csv"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 VALIDATION_REPORT_PATH = REPORTS_DIR / "validation.json"
+METRICS_PATH = REPORTS_DIR / "metrics.json"
+ROC_CURVE_PATH = REPORTS_DIR / "roc_curve.png"
+
+MODEL_PATH = PROJECT_ROOT / "models" / "model.joblib"
 
 TARGET = "default"
 
