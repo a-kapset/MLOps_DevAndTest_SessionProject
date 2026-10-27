@@ -2,19 +2,62 @@
 
 Сессионный проект по курсу «Автоматизация процессов разработки и тестирования моделей ML». Модель оценивает вероятность дефолта клиента по кредитной карте, а конвейер вокруг неё готовит данные, проверяет их, обучает модель и отдаёт прогноз через API.
 
-Проект в разработке: README описывает только готовые части и дополняется вместе с проектом.
+[![CI](https://github.com/a-kapset/MLOps_DevAndTest_SessionProject/actions/workflows/ci.yml/badge.svg)](https://github.com/a-kapset/MLOps_DevAndTest_SessionProject/actions/workflows/ci.yml)
 
-## Что готово
+## Что сделано
 
-- Исходные данные версионируются DVC, хранилище размещено на DagsHub.
-- DVC-стадия `validate` проверяет исходные данные набором правил Great Expectations и останавливает пайплайн при аномалиях.
-- DVC-стадия `prepare` очищает данные и делит их на обучающую и тестовую выборки.
-- DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
-- DVC-стадия `train` подбирает гиперпараметры логистической регрессии и случайного леса через GridSearchCV и сохраняет лучшую модель. Все эксперименты записываются в MLflow.
-- REST API на FastAPI: `POST /predict` возвращает класс и вероятность дефолта по признакам клиента.
-- Docker-образ с API и моделью, скрипты сборки и запуска для PowerShell и bash.
-- Unit-тесты очистки, разбиения, правил валидации, признаков, Pipeline, метрик и API (pytest).
-- CI в GitHub Actions: форматирование, линтинг и проверка типов, unit-тесты, валидация реальных данных.
+Конвейер проходит путь от исходного CSV до сервиса в Docker, каждый этап запускается одной командой:
+
+1. `validate`: Great Expectations проверяет исходные данные 70 правилами и останавливает пайплайн при аномалиях.
+2. `prepare`: очистка, удаление дубликатов, стратифицированное разбиение на train и test.
+3. `eda`: графики разведочного анализа, выводы и решения для модели в [reports/eda.md](reports/eda.md).
+4. `train`: sklearn Pipeline с доменными признаками, подбор гиперпараметров логистической регрессии и случайного леса через GridSearchCV, трекинг всех экспериментов в MLflow, сохранение лучшей модели.
+5. REST API на FastAPI: `POST /predict` возвращает класс и вероятность дефолта.
+6. Docker-образ с API и моделью, скрипты сборки и запуска для PowerShell и bash.
+
+Стадии 1–4 описаны в `dvc.yaml`, данные и модель версионируются DVC в хранилище на DagsHub. Unit-тесты (pytest) покрывают очистку, разбиение, правила валидации, признаки, Pipeline, метрики и API. CI в GitHub Actions на каждый push проверяет форматирование, линтинг и типы, запускает тесты и валидирует реальные данные.
+
+Итог: лучшая модель, случайный лес, даёт ROC-AUC 0,787 на кросс-валидации и 0,777 на тестовой выборке. Сравнение моделей приведено в разделе «Эксперименты MLflow».
+
+## Демонстрация
+
+**Без запуска.** Результаты лежат в репозитории и на DagsHub:
+
+- [reports/eda.md](reports/eda.md): разведочный анализ с графиками и решениями для модели;
+- [reports/metrics.json](reports/metrics.json) и [reports/roc_curve.png](reports/roc_curve.png): параметры, метрики и ROC-кривая лучшей модели;
+- [reports/validation.json](reports/validation.json): результат каждого правила валидации;
+- [эксперименты MLflow на DagsHub](https://dagshub.com/artem_vk/MLOps_DevAndTest_SessionProject.mlflow/#/experiments/0): 2 родительских и 7 вложенных runs с параметрами, метриками, ROC-кривыми и моделями, вход не нужен;
+- [запуски CI](https://github.com/a-kapset/MLOps_DevAndTest_SessionProject/actions/workflows/ci.yml).
+
+**С запуском.** Команды ниже проверены на свежем клоне в PowerShell; справа указан ожидаемый вывод. Данные получаются одним из двух способов из раздела «Данные», здесь показан первый, с токеном DagsHub.
+
+```powershell
+git clone https://github.com/a-kapset/MLOps_DevAndTest_SessionProject.git
+cd MLOps_DevAndTest_SessionProject
+poetry install
+poetry run dvc remote modify --local origin auth basic
+poetry run dvc remote modify --local origin user <логин DagsHub>
+poetry run dvc remote modify --local origin password <токен DagsHub>
+poetry run dvc pull                  # 4 files fetched: исходный CSV, train.csv, test.csv, модель
+poetry run dvc status                # Data and pipelines are up to date.
+poetry run pytest                    # 32 passed
+.\scripts\docker_build.ps1           # Built image: credit-default-api
+.\scripts\docker_run.ps1             # health: ok
+curl.exe -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" --data-binary "@examples/client.json"
+                                     # {"prediction":0,"probability":0.125050130403816}
+docker stop credit-default-api
+```
+
+После `dvc pull` все стадии актуальны, и `dvc repro` ничего не пересчитывает. Чтобы увидеть пайплайн в работе, `poetry run dvc repro -f` перезапускает все стадии принудительно, это занимает около минуты:
+
+```
+validate: success=True, checks=70, failed=0
+prepare: train=23972, test=5993, default_rate=0.2213
+EDA: figures=3, dir=reports/figures
+train: best=random_forest, cv_roc_auc=0.7867, test_roc_auc=0.7765
+```
+
+Runs этого запуска сохраняются в локальном MLflow и открываются командой `poetry run mlflow ui`.
 
 ## Стек
 
@@ -38,7 +81,7 @@
 ## Структура
 
 ```
-├── .github/workflows/ci.yml        # CI: линтинг, проверка типов, тесты
+├── .github/workflows/ci.yml        # CI: линтинг, проверка типов, тесты, валидация данных
 ├── data/
 │   ├── raw/                        # исходный CSV (в git только указатель .dvc)
 │   └── processed/                  # train.csv и test.csv, выходы стадии prepare
@@ -99,7 +142,7 @@ poetry run dvc remote modify --local origin password <токен DagsHub>
 poetry run dvc pull
 ```
 
-`dvc pull` скачивает исходный CSV и готовые `train.csv` и `test.csv`.
+`dvc pull` скачивает исходный CSV, готовые `train.csv` и `test.csv` и обученную модель `models/model.joblib`.
 
 **Способ 2. Без аккаунта DagsHub.** Скачать `UCI_Credit_Card.csv` с Kaggle по ссылке выше, положить в `data/raw/` и собрать выборки заново:
 
@@ -107,7 +150,7 @@ poetry run dvc pull
 poetry run dvc repro
 ```
 
-Файл с Kaggle совпадает с версией в DVC по MD5, поэтому стадия `prepare` даёт те же `train.csv` и `test.csv` побайтно.
+Файл с Kaggle совпадает с версией в DVC по MD5. `dvc repro` выполняет `prepare` и `train` (около двух минут), а `validate` и `eda` пропускает: их результаты уже есть в git. Модель обучается заново, runs записываются в локальный MLflow. В проверочном прогоне на свежем клоне выборки, модель и метрики совпали с версией в хранилище DVC побайтно.
 
 ## Пайплайн
 
@@ -268,4 +311,4 @@ CI запускает три задания на каждый push в `main` и 
   New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
   ```
 
-- После `dvc repro` или `dvc pull` git может показать `dvc.lock` и `.dvc`-файлы изменёнными. DVC на Windows записывает их с CRLF, содержимое не меняется: `git diff --ignore-cr-at-eol` пуст.
+- После `dvc repro` или `dvc pull` git может показать изменёнными `dvc.lock`, `.dvc`-файлы и `.gitignore` в папках с данными. DVC на Windows записывает их с CRLF, содержимое не меняется: `git diff --ignore-cr-at-eol` пуст.
