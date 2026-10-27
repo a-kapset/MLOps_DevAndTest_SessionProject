@@ -31,3 +31,20 @@ stages:
     outs:
       - reports/figures:
           cache: false
+
+  train:
+    cmd: python -m credit_default.models.train
+    deps:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - src/credit_default/models
+      - src/credit_default/features
+      - src/credit_default/config.py
+    params:
+      - train
+    outs:
+      - models/model.joblib
+      - reports/metrics.json:
+          cache: false
+      - reports/roc_curve.png:
+          cache: false

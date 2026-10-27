@@ -1,0 +1,14 @@
+{
+  "model": "random_forest",
+  "params": {
+    "max_depth": 16,
+    "min_samples_leaf": 20
+  },
+  "cv_roc_auc": 0.7867337912456616,
+  "test": {
+    "roc_auc": 0.7765023894544054,
+    "precision": 0.6714285714285714,
+    "recall": 0.35444947209653094,
+    "f1": 0.46396841066140176
+  }
+}

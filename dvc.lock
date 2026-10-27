@@ -13,8 +13,8 @@ stages:
       size: 13120
     - path: src/credit_default/config.py
       hash: md5
-      md5: 9c8aae9eb7fa51d08d6a2ed376230993
-      size: 912
+      md5: 652708ad7dba86c177813ea62e0b132d
+      size: 1058
     - path: src/credit_default/data/make_dataset.py
       hash: md5
       md5: 5e63ba7d248a690daafcba6d146a775e
@@ -46,8 +46,8 @@ stages:
       size: 4240
     - path: src/credit_default/config.py
       hash: md5
-      md5: 9c8aae9eb7fa51d08d6a2ed376230993
-      size: 912
+      md5: 652708ad7dba86c177813ea62e0b132d
+      size: 1058
     outs:
     - path: reports/figures
       hash: md5
@@ -63,8 +63,8 @@ stages:
       size: 2862995
     - path: src/credit_default/config.py
       hash: md5
-      md5: 9c8aae9eb7fa51d08d6a2ed376230993
-      size: 912
+      md5: 652708ad7dba86c177813ea62e0b132d
+      size: 1058
     - path: src/credit_default/data/validation.py
       hash: md5
       md5: 118c6df30719b8038e1705b7c7750b09
@@ -74,3 +74,59 @@ stages:
       hash: md5
       md5: d34409a737c4fc9a160bedc385e0c33c
       size: 13120
+  train:
+    cmd: python -m credit_default.models.train
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 0e9ecea30502046987abbcdfcd2b5de1
+      size: 701518
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 265faae9d57c520f224511b4a0514ed5
+      size: 2803834
+    - path: src/credit_default/config.py
+      hash: md5
+      md5: 652708ad7dba86c177813ea62e0b132d
+      size: 1058
+    - path: src/credit_default/features
+      hash: md5
+      md5: c459a7b97731c38f1f1777833aaee81d.dir
+      size: 885
+      nfiles: 2
+    - path: src/credit_default/models
+      hash: md5
+      md5: 79fbefc665f8feea53924ba7f4dbd3b6.dir
+      size: 9117
+      nfiles: 4
+    params:
+      params.yaml:
+        train:
+          cv_folds: 5
+          random_state: 42
+          grids:
+            logreg:
+              C:
+              - 0.01
+              - 0.1
+              - 1.0
+            random_forest:
+              max_depth:
+              - 8
+              - 16
+              min_samples_leaf:
+              - 5
+              - 20
+    outs:
+    - path: models/model.joblib
+      hash: md5
+      md5: d40980428ad0dde3aabf737337673aac
+      size: 14655211
+    - path: reports/metrics.json
+      hash: md5
+      md5: 30781f468902e14e97df9bce7f70882e
+      size: 288
+    - path: reports/roc_curve.png
+      hash: md5
+      md5: acbe44abd0481858af2c2a122f86a33c
+      size: 32116
