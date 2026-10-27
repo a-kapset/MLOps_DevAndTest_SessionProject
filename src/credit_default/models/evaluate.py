@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib.figure import Figure
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, roc_curve
 
-THRESHOLD = 0.5
+from credit_default.config import THRESHOLD
 
 
 def compute_metrics(

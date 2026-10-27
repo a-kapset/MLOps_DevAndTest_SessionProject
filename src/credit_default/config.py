@@ -22,6 +22,7 @@ ROC_CURVE_PATH = REPORTS_DIR / "roc_curve.png"
 MODEL_PATH = PROJECT_ROOT / "models" / "model.joblib"
 
 TARGET = "default"
+THRESHOLD = 0.5
 
 
 def load_params(section: str) -> dict[str, Any]:

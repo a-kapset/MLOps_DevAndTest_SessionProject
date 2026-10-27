@@ -5,7 +5,15 @@ description = "Probability-of-default model for the UCI credit card default data
 authors = [{name = "Artsiom Kapset"}]
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = ["pandas (>=3.0.6,<4.0.0)", "scikit-learn (>=1.9.1,<2.0.0)", "joblib (>=1.6.0,<2.0.0)"]
+dependencies = [
+    "pandas (>=3.0.6,<4.0.0)",
+    "scikit-learn (>=1.9.1,<2.0.0)",
+    "joblib (>=1.6.0,<2.0.0)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    "fastapi (>=0.162.0,<0.163.0)",
+    "uvicorn (>=0.54.0,<0.55.0)",
+]
+
 
 
 [tool.poetry]
@@ -21,6 +29,7 @@ build-backend = "poetry.core.masonry.api"
 test = [
     "pytest (>=9.1.1,<10.0.0)",
     "pytest-cov (>=7.1.0,<8.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
 ]
 lint = [
     "ruff (>=0.17.1,<0.18.0)",
@@ -31,7 +40,6 @@ lint = [
 ]
 train = [
     "dvc (>=3.67.1,<4.0.0)",
-    "pyyaml (>=6.0.3,<7.0.0)",
     "matplotlib (>=3.11.2,<4.0.0)",
     "great-expectations (>=1.24.1,<2.0.0)",
     "mlflow (>=3.17.2,<4.0.0)",
