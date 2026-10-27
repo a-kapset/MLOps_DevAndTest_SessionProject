@@ -11,7 +11,8 @@
 - DVC-стадия `prepare` очищает данные и делит их на обучающую и тестовую выборки.
 - DVC-стадия `eda` строит графики разведочного анализа, выводы собраны в [reports/eda.md](reports/eda.md).
 - DVC-стадия `train` подбирает гиперпараметры логистической регрессии и случайного леса через GridSearchCV и сохраняет лучшую модель. Все эксперименты записываются в MLflow.
-- Unit-тесты очистки, разбиения, правил валидации, признаков, Pipeline и метрик (pytest).
+- REST API на FastAPI: `POST /predict` возвращает класс и вероятность дефолта по признакам клиента.
+- Unit-тесты очистки, разбиения, правил валидации, признаков, Pipeline, метрик и API (pytest).
 - CI в GitHub Actions: форматирование, линтинг и проверка типов, unit-тесты, валидация реальных данных.
 
 ## Стек
@@ -22,6 +23,7 @@
 | pandas, scikit-learn | обработка данных, Pipeline модели, подбор гиперпараметров |
 | joblib | сохранение обученного Pipeline в файл |
 | matplotlib | графики разведочного анализа и ROC-кривая |
+| FastAPI, pydantic, uvicorn | REST API модели, проверка входных данных по схеме, ASGI-сервер |
 | MLflow | трекинг экспериментов: параметры, метрики, ROC-кривая и модель; сервер MLflow на DagsHub |
 | Great Expectations | правила валидации исходных данных |
 | DVC, DagsHub | версии данных, воспроизводимый пайплайн, удалённое хранилище |
@@ -53,7 +55,10 @@
 │   ├── features/build_features.py  # доменные признаки
 │   ├── models/pipeline.py          # sklearn Pipeline: признаки, предобработка, классификатор
 │   ├── models/evaluate.py          # метрики и ROC-кривая
-│   └── models/train.py             # стадия train: GridSearchCV и MLflow
+│   ├── models/train.py             # стадия train: GridSearchCV и MLflow
+│   ├── api/schemas.py              # схемы запроса и ответа API
+│   └── api/app.py                  # приложение FastAPI: /health, /predict
+├── examples/client.json            # пример запроса к /predict
 ├── tests/                          # unit-тесты
 ├── dvc.yaml, dvc.lock              # описание пайплайна и зафиксированные хэши
 ├── params.yaml                     # параметры стадий, включая сетки гиперпараметров
@@ -73,7 +78,7 @@ cd MLOps_DevAndTest_SessionProject
 poetry install
 ```
 
-`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn), `train` (DVC, PyYAML, matplotlib, Great Expectations, MLflow), `test` (pytest) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
+`poetry install` ставит все группы зависимостей: основную (pandas, scikit-learn, joblib, PyYAML, FastAPI, uvicorn), на которой работает API, `train` (DVC, matplotlib, Great Expectations, MLflow), `test` (pytest, httpx) и `lint` (ruff, mypy, pre-commit). Отдельные группы ставятся флагом `--only`, например `poetry install --only main,train,test`.
 
 ## Данные
 
@@ -174,6 +179,35 @@ poetry run mlflow ui     # http://127.0.0.1:5000, переключатель Mod
 ```
 
 Чтобы писать на свой сервер MLflow, нужно скопировать `.env.example` в `.env` и заполнить адрес, логин и токен. `train` читает `.env` при запуске, сам файл в git не попадает.
+
+## API
+
+API отдаёт прогноз модели из `models/model.joblib`. Файл появляется после `dvc pull` или `dvc repro`, другой путь задаёт переменная `MODEL_PATH`. Без файла модели сервис не запускается и сообщает, как его получить.
+
+```bash
+poetry run uvicorn credit_default.api.app:app --port 8000
+```
+
+| Метод | Путь | Ответ |
+|---|---|---|
+| GET | `/health` | `{"status": "ok"}`, когда сервис запущен и модель загружена |
+| POST | `/predict` | класс (`1`, если вероятность дефолта не меньше 0,5) и вероятность дефолта |
+| GET | `/docs` | интерактивная документация Swagger UI |
+
+Запрос к `/predict` содержит 23 признака клиента с теми же именами, что в очищенных данных (`PAY_1…6`, а не `PAY_0`). Пример лежит в `examples/client.json`. В PowerShell:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" --data-binary "@examples/client.json"
+```
+
+Ответ: `{"prediction":0,"probability":0.12505013040381596}`. Последние знаки вероятности могут отличаться между запусками: случайный лес считает деревья параллельно, и порядок сложения меняется.
+
+Схема запроса (`src/credit_default/api/schemas.py`) отклоняет недопустимые значения ответом 422 с описанием ошибки:
+
+- `LIMIT_BAL` больше нуля: признак `LIMIT_UTILIZATION` делит на него;
+- `AGE` от 18 до 100, статусы `PAY_1…6` от −2 до 8, суммы платежей `PAY_AMT1…6` не отрицательные;
+- `SEX` 1–2, `EDUCATION` 1–4, `MARRIAGE` 1–3. Коды `EDUCATION` 0, 5, 6 и `MARRIAGE` 0 из исходных данных стадия `prepare` перекодирует в «прочее» (4 и 3), поэтому API ждёт уже перекодированные значения;
+- лишние поля, например `ID`, не принимаются.
 
 ## Тесты и проверки кода
 
